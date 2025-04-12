@@ -1,198 +1,184 @@
-import React, { useState, useEffect, memo, useRef } from "react";
-import { useLocation } from "react-router-dom";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
-
-import { questions } from "../data/questions";
-import { reactInterviewQuestions } from "../data/react-questions";
-import { rtlQuizzes } from "../data/react-testing-library";
-
-const quizMap = {
-  "/": { title: "JavaScript Quiz", data: questions },
-  "/react-quizzes": { title: "React Quizzes", data: reactInterviewQuestions },
-  "/react-testing-libray-quizzes": { title: "React Testing Library Quizzes", data: rtlQuizzes },
-};
+import React, { useState, useEffect, memo } from 'react'; 
+import { useParams } from 'react-router-dom';
+import * as data from '../data/all-data';
 
 const Quiz = () => {
-  const location = useLocation();
-  const { pathname } = location;
+  const { category } = useParams();
 
-  const quizContent = quizMap[pathname] || quizMap["/"];
-  const currentQuestions = quizContent.data;
-  const title = quizContent.title;
+
+  // Mapping the category names to the keys in the data object
+  const categoryMapping = {
+    javascript: 'coreJavaScriptConcepts',
+    'functions-and-scope': 'functionsAndScope',
+    'asynchronous-javascript': 'asynchronousJavaScript',
+    'objects-and-arrays': 'objectsAndArrays',
+    'es6-plus-features': 'es6PlusFeatures',
+    dom: 'domManipulation',
+    algorithms: 'algorithmsAndDataStructures',
+    memory: 'memoryManagementAndOptimization',
+    react: 'reactClassInheritanceQuestions',
+    'react-mid-level': 'reactMidLevelInterviewQuestions',
+    'react-promises-async-await': 'reactPromisesAsyncAwaitQuestions',
+    'react-event-loop-thread': 'reactEventLoopThreadQuestions',
+    'react-middleware-optimization-hooks': 'reactMiddlewareOptimizationHooksQuestions',
+    'react-session-auth-socket': 'reactSessionAuthSocketQuestions',
+    'react-optimization': 'reactOptimizationQuestions',
+    'react-redux-testing': 'reactReduxTesting',
+    'react-design-patterns': 'javascriptDesignPatterns',
+    'react-functional-programming': 'functionalProgramming',
+    'testing-philosophy-rtl': 'testingPhilosophyWithRTL',
+    'writing-tests-state-handling': 'writingTestsAndStateHandling',
+    'component-integration-testing': 'componentAndIntegrationTesting',
+    'mocking-spying': 'mockingAndSpying',
+    'code-coverage-performance': 'codeCoverageAndPerformance',
+    'error-handling-edge-cases': 'errorHandlingAndEdgeCases',
+    webapis: 'webAPIs',
+  };
+
+  // Format category string to match the key in data
+  const formatCategoryKey = (category) => {
+    return categoryMapping[category] || category;
+  };
+
+  const formattedCategory = formatCategoryKey(category);
+  const quizData = data[formattedCategory];
+
+  if (!quizData) return <p>Quiz not found!</p>;
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [rawScore, setRawScore] = useState(parseInt(localStorage.getItem("score")) || 0);
-  const [answerSelected, setAnswerSelected] = useState(null);
-  const [showAnswer, setShowAnswer] = useState(false);
-  const [isQuizFinished, setIsQuizFinished] = useState(false);
-  const certificateRef = useRef(null);
+  const [score, setScore] = useState(() => {
+    return JSON.parse(localStorage.getItem(formattedCategory)) || 0; // Store score for each category
+  });
+  const [lastInteractionTime, setLastInteractionTime] = useState(Date.now());
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const [answerDescription, setAnswerDescription] = useState('');
 
-  const currentQuestion = currentQuestions[currentQuestionIndex];
-  const isShortQuiz = currentQuestions.length <= 20;
-  const isCertificateEligible = isShortQuiz && rawScore === currentQuestions.length;
-
-  // Auto-logout / cleanup after 1hr
   useEffect(() => {
-    const lastActivity = parseInt(localStorage.getItem("lastActivity")) || Date.now();
-    const now = Date.now();
+    // Checking for session expiration every 10 minutes
+    const checkSession = setInterval(() => {
+      const timeSinceLastInteraction = Date.now() - lastInteractionTime;
+      if (timeSinceLastInteraction > 3600000) { // 1 hour in milliseconds
+        setSessionExpired(true);
+        localStorage.removeItem(formattedCategory); // Reset score for this category on session expiration
+        setScore(0); // Reset score
+      }
+    }, 600000); // Check every 10 minutes
 
-    if (now - lastActivity > 60 * 60 * 1000) {
-      localStorage.removeItem("score");
-      localStorage.removeItem("lastActivity");
-      setRawScore(0);
+    return () => clearInterval(checkSession);
+  }, [lastInteractionTime]);
+
+  useEffect(() => {
+    // Resetting the score and question index when the category changes
+    setScore(0);
+    setCurrentQuestionIndex(0);
+    setSessionExpired(false);
+    localStorage.removeItem(formattedCategory); // Reset score when game starts or restarts
+  }, [category]);
+
+  const handleAnswerSelection = (answer) => {
+    const currentQuestion = quizData[currentQuestionIndex];
+    
+    // Check if the answer is correct and update score
+    if (answer === currentQuestion.correctAnswer) {
+      const newScore = score + 5;
+      setScore(newScore);
+      localStorage.setItem(formattedCategory, JSON.stringify(newScore)); // Store updated score for this category
+      alert('Correct! 5 points added');
     }
 
-    const interval = setInterval(() => {
-      localStorage.setItem("lastActivity", Date.now());
-    }, 60 * 1000);
+    // Store the answer description (explanation) for the current question
+    setAnswerDescription(currentQuestion.answerDescription);
 
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("score", rawScore);
-  }, [rawScore]);
-
-  useEffect(() => {
-    // Reset quiz on path change
-    setRawScore(0);
-    setCurrentQuestionIndex(0);
-    setAnswerSelected(null);
-    setShowAnswer(false);
-    setIsQuizFinished(false);
-    localStorage.removeItem("score");
-  }, [pathname]);
-
-  const handleAnswer = (answer) => {
-    setAnswerSelected(answer);
-    setShowAnswer(true);
-    if (answer === currentQuestion.correctAnswer) {
-      setRawScore((prev) => prev + 1);
+    // Go to next question or end quiz if finished
+    if (currentQuestionIndex + 1 < quizData.length) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setLastInteractionTime(Date.now()); // Update last interaction time
     }
   };
 
   const handleNextQuestion = () => {
-    if (currentQuestionIndex < currentQuestions.length - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1);
-      setAnswerSelected(null);
-      setShowAnswer(false);
-    } else {
-      setIsQuizFinished(true);
+    if (currentQuestionIndex + 1 < quizData.length) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setAnswerDescription(''); // Clear explanation for next question
+      setLastInteractionTime(Date.now()); // Update last interaction time
     }
   };
 
   const handleRestart = () => {
-    setRawScore(0);
+    setScore(0);
     setCurrentQuestionIndex(0);
-    setIsQuizFinished(false);
-    localStorage.removeItem("score");
-    localStorage.removeItem("lastActivity");
+    localStorage.removeItem(formattedCategory);
+    setLastInteractionTime(Date.now());
+    setAnswerDescription(''); // Clear answer description on restart
   };
 
-  const finalScore = isShortQuiz ? (rawScore === currentQuestions.length ? 100 : Math.round((rawScore / currentQuestions.length) * 100)) : (rawScore * 2.5);
-
-  const handleDownloadCertificate = async () => {
-    const canvas = await html2canvas(certificateRef.current);
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("landscape");
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-    pdf.addImage(imgData, "PNG", 0, 20, pdfWidth, pdfHeight);
-    pdf.save(`Certificate-${title.replace(/\s+/g, "_")}.pdf`);
-  };
+  // Logic for displaying the winner message and certificate
+  const displayWinner = score >= 100;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6">
-      <div className="max-w-2xl w-full bg-white rounded-lg shadow-lg p-6">
-        <h1 className="text-3xl font-bold text-blue-600 mb-6 text-center">{title}</h1>
-
-        {!isQuizFinished ? (
-          <>
-            <div className="mb-6">
-              <p className="text-lg font-semibold mb-4">{currentQuestion.question}</p>
-              <div className="space-y-3">
-                {currentQuestion.options.map((option, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleAnswer(option)}
-                    className={`block w-full p-3 rounded-lg border transition-all duration-300 ease-in-out transform hover:scale-105 ${
-                      answerSelected === option
-                        ? answerSelected === currentQuestion.correctAnswer
-                          ? "bg-green-500 text-white"
-                          : "bg-red-500 text-white"
-                        : "bg-gray-100"
-                    }`}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {showAnswer && (
-              <div className="mb-6 animate-fadeIn">
-                <p className={`text-lg font-semibold ${answerSelected === currentQuestion.correctAnswer ? "text-green-600" : "text-red-600"}`}>
-                  {answerSelected === currentQuestion.correctAnswer
-                    ? "✅ Correct!"
-                    : `❌ Incorrect! The correct answer is: ${currentQuestion.correctAnswer}`}
-                </p>
-                {currentQuestion.answerDescription && (
-                  <div className="mt-4 text-gray-700">
-                    <p className="font-semibold">Why this answer is correct:</p>
-                    <p>{currentQuestion.answerDescription}</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <button
-              onClick={handleNextQuestion}
-              className="mt-4 w-full py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all duration-300"
-            >
-              {currentQuestionIndex < currentQuestions.length - 1 ? "Next Question" : "Finish Quiz"}
-            </button>
-
-            <p className="mt-4 text-center text-lg font-semibold">Score: <strong>{finalScore}</strong></p>
-          </>
-        ) : (
-          <div className="mt-6 text-center">
-            <h2 className="text-xl font-bold text-blue-600">🎉 Quiz Finished!</h2>
-            <p className="text-lg mt-2">Your Final Score: <strong>{finalScore}</strong></p>
-
-            {isCertificateEligible && (
-              <>
-                <div
-                  ref={certificateRef}
-                  className="mt-6 border-2 border-yellow-400 p-6 rounded-lg bg-yellow-50 shadow-xl text-center"
-                >
-                  <h3 className="text-2xl font-bold text-yellow-700 mb-4">🏆 Certificate of Excellence</h3>
-                  <p className="text-lg text-gray-800">Awarded to: <span className="font-bold text-xl">Kingsley Ibe</span></p>
-                  <p className="text-xl font-bold text-black">You 🎓</p>
-                  <p className="text-gray-700 mt-2 italic">
-                    For achieving a perfect score in <strong>{title}</strong>
-                  </p>
-                  <p className="mt-4 text-sm text-gray-500">Issued by Quizlo • {new Date().toLocaleDateString()}</p>
-                </div>
-
-                <button
-                  onClick={handleDownloadCertificate}
-                  className="mt-4 py-2 px-6 rounded-lg bg-yellow-500 text-white font-semibold hover:bg-yellow-600"
-                >
-                  Download Certificate
-                </button>
-              </>
-            )}
-
-            <button
-              onClick={handleRestart}
-              className="mt-6 py-2 px-6 rounded-lg bg-green-500 text-white font-semibold hover:bg-green-600"
-            >
-              Restart Quiz
-            </button>
+    <div className="quiz-container min-h-screen bg-gradient-to-r from-blue-100 to-blue-200 flex flex-col items-center justify-center py-10 px-5">
+      <div className="quiz-card max-w-lg w-full bg-white shadow-lg rounded-xl p-6 space-y-6">
+        {sessionExpired ? (
+          <div className="text-center">
+            <p className="text-xl font-bold text-red-600">Session Expired</p>
+            <p className="text-gray-700">Your session has expired due to inactivity.</p>
           </div>
+        ) : displayWinner ? (
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-green-600">Congratulations!</h2>
+            <p className="text-xl text-gray-700 mb-4">You have won the Quiz!</p>
+            <div className="certificate p-6 border rounded-lg bg-blue-100">
+              <p className="text-xl font-semibold">From Quizlo: Award of Excellence</p>
+              <p className="text-lg mt-4">Category: {category.replace(/-/g, ' ').toUpperCase()}</p>
+              <button onClick={() => window.print()} className="mt-4 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-blue-700 transition-all">
+                Print Certificate
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <h1 className="text-3xl font-bold text-blue-600 text-center">{category.replace(/-/g, ' ').toUpperCase()}</h1>
+            <div className="question-container">
+              <h3 className="text-xl font-semibold text-gray-800">{quizData[currentQuestionIndex].question}</h3>
+            </div>
+            <div className="options-container grid grid-cols-1 gap-4">
+              {quizData[currentQuestionIndex].options.map((option, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleAnswerSelection(option)}
+                  className="option-button w-full py-3 px-5 text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 transition-all transform hover:scale-105 focus:outline-none"
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+            {/* Show answer description after submitting an answer */}
+            {answerDescription && (
+              <div className="answer-description mt-6 p-4 border-t border-gray-300">
+                <h4 className="text-lg font-semibold text-gray-800">Explanation:</h4>
+                <p className="text-gray-700">{answerDescription}</p>
+              </div>
+            )}
+             <p className="text-lg text-center font-semibold text-gray-700 mt-6">Score: {score}</p>
+            <div className="score-container text-center mt-4">
+             
+              <button
+                onClick={handleRestart}
+                className="mt-4 bg-red-600 text-white px-6 py-3 mr-4 rounded-lg shadow-lg hover:bg-red-700 transition-all"
+              >
+                Restart Quiz
+              </button>
+             
+              {currentQuestionIndex + 1 < quizData.length && (
+                <button
+                  onClick={handleNextQuestion}
+                  className="mt-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-green-700 transition-all"
+                >
+                  Next Question
+                </button>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>

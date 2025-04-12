@@ -1,19 +1,22 @@
-import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import Quiz from "./components/Quiz";
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Home from './components/Home';
+import QuizSelector from './components/QuizSelector';
+import Quiz from './components/Quiz';
+import Footer from './components/Footer';
 
-const App = () => {
+function App() {
   return (
     <Router>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Quiz />} />
-        <Route path="/react-quizzes" element={<Quiz />} />
-        <Route path="/react-testing-libray-quizzes" element={<Quiz />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/quiz-selector" element={<QuizSelector />} />
+        <Route path="/quiz/:category" element={<Quiz />} />
       </Routes>
+      <Footer/>
     </Router>
   );
-};
+}
 
 export default App;
