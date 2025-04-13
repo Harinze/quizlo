@@ -38,23 +38,35 @@ const QuizSelector = () => {
   };
 
   return (
-    <div className="quiz-selector min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-blue-100 to-blue-200 py-16 px-8">
-      <h2 className="text-4xl font-extrabold text-blue-600 mb-10">
-        Choose Your Quiz
-      </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {Object.keys(categoryData).map((category) => (
-          <button
-            key={category}
-            onClick={() => handleCategorySelect(category)}
-            className="bg-blue-600 text-white p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <h3 className="text-xl font-semibold text-center">{category.replace(/-/g, ' ').toUpperCase()}</h3>
-            <p className="text-sm text-gray-100 mt-2 text-center">Click to start quiz</p>
-          </button>
-        ))}
-      </div>
+    <div className="quiz-selector min-h-screen flex flex-col items-center justify-center bg-white py-20 px-4">
+    <h2 className="text-3xl md:text-5xl font-extrabold text-gray-400 mb-12 text-center drop-shadow-sm">
+      Choose Your Quiz
+    </h2>
+  
+    <div
+      className={`w-full max-w-6xl grid gap-6 px-2 sm:px-4 md:px-6 place-items-center
+        ${Object.keys(categoryData).length === 1
+          ? 'grid-cols-1'
+          : Object.keys(categoryData).length === 2
+          ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2'
+          : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+        }`}
+    >
+      {Object.keys(categoryData).map((category) => (
+        <button
+          key={category}
+          onClick={() => handleCategorySelect(category)}
+          className="cursor-pointer bg-blue-600 text-white p-6 h-40 sm:h-48 md:h-52 w-full max-w-sm rounded-2xl shadow-lg hover:shadow-2xl hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:-translate-y-1 focus:outline-none focus:ring-4 focus:ring-blue-300"
+        >
+          <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-center tracking-wide">
+            {category.replace(/-/g, ' ').toUpperCase()}
+          </h3>
+          <p className="text-sm sm:text-base text-black mt-3 text-center">Click to start quiz</p>
+        </button>
+      ))}
     </div>
+  </div>
+  
   );
 };
 
