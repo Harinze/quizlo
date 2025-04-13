@@ -4,9 +4,7 @@ import Home from './components/Home';
 import QuizSelector from './components/QuizSelector';
 import Quiz from './components/Quiz';
 import Footer from './components/Footer';
-import RTLQuiz from './components/RTLQuiz';
-import ReactQuiz from './components/ReactQuiz';
-import JavaScriptQuiz from './components/JavascriptQuiz';
+import QuizComponent from './components/QuizTwo';
 
 function App() {
   return (
@@ -16,9 +14,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/quiz-selector" element={<QuizSelector />} />
         <Route path="/quiz/:category" element={<Quiz />} />
-        <Route path="/quiz/rtl" element={<RTLQuiz />} />
-        <Route path="/quiz/react-quiz" element={<ReactQuiz />} />
-        <Route path="/quiz/javascript-quiz" element={<JavaScriptQuiz />} />
+        <Route path="/quiz" element={<QuizComponent />} />
       </Routes>
       <Footer/>
     </Router>

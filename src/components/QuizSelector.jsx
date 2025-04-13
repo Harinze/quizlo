@@ -56,7 +56,7 @@ const QuizSelector = () => {
         <button
           key={category}
           onClick={() => handleCategorySelect(category)}
-          className="cursor-pointer bg-blue-600 text-white p-6 h-40 sm:h-48 md:h-52 w-full max-w-sm rounded-2xl shadow-lg hover:shadow-2xl hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:-translate-y-1 focus:outline-none focus:ring-4 focus:ring-blue-300"
+          className="cursor-pointer bg-blue-600 text-white p-6 h-40 sm:h-48 md:h-52 w-full max-w-sm rounded-full shadow-lg hover:shadow-2xl hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:-translate-y-1 focus:outline-none focus:ring-4 focus:ring-blue-300"
         >
           <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-center tracking-wide">
             {category.replace(/-/g, ' ').toUpperCase()}

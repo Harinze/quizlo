@@ -27,7 +27,15 @@ function Navbar() {
               Select a Quiz
             </Link>
           </li>
+
           <li>
+            <Link to="/quiz" className="hover:text-gray-100 transition-colors duration-200">
+              Quiz
+            </Link>
+          </li>
+
+
+          {/* <li>
             <Link to="/quiz/rtl" className="hover:text-gray-100 transition-colors duration-200">
               RTL quiz
             </Link>
@@ -41,7 +49,9 @@ function Navbar() {
             <Link to="/quiz/javascript-quiz" className="hover:text-gray-100 transition-colors duration-200">
               Javascript quiz
             </Link>
-          </li>
+          </li> */}
+
+
         </ul>
       </div>
     </nav>
