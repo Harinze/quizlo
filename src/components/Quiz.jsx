@@ -1,12 +1,14 @@
-import React, { useState, useEffect, memo } from 'react'; 
+import React, { useState, useEffect, memo, useMemo  } from 'react'; 
 import { useParams } from 'react-router-dom';
 import * as data from '../data/all-data';
+import Confetti from 'react-confetti';
+import { useWindowSize } from 'react-use';
 
 const Quiz = () => {
   const { category } = useParams();
+  const { width, height } = useWindowSize();
 
 
-  // Mapping the category names to the keys in the data object
   const categoryMapping = {
     javascript: 'coreJavaScriptConcepts',
     'functions-and-scope': 'functionsAndScope',
@@ -35,72 +37,114 @@ const Quiz = () => {
     webapis: 'webAPIs',
   };
 
-  // Format category string to match the key in data
   const formatCategoryKey = (category) => {
     return categoryMapping[category] || category;
   };
 
   const formattedCategory = formatCategoryKey(category);
-  const quizData = data[formattedCategory];
+  const quizData = useMemo(() => data[formattedCategory], [formattedCategory]);
 
   if (!quizData) return <p>Quiz not found!</p>;
 
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [score, setScore] = useState(() => {
-    return JSON.parse(localStorage.getItem(formattedCategory)) || 0; // Store score for each category
-  });
-  const [lastInteractionTime, setLastInteractionTime] = useState(Date.now());
-  const [sessionExpired, setSessionExpired] = useState(false);
-  const [answerDescription, setAnswerDescription] = useState('');
+const totalQuestions = quizData.length;
+const generateRandomIndex = () => Math.floor(Math.random() * totalQuestions);
+const initialIndex = generateRandomIndex();
+
+  
+const [lastInteractionTime, setLastInteractionTime] = useState(Date.now());
+const [sessionExpired, setSessionExpired] = useState(false);
+const [shownQuestions, setShownQuestions] = useState([initialIndex]);
+const [currentQuestionIndex, setCurrentQuestionIndex] = useState(initialIndex); 
+const [score, setScore] = useState(0);
+const [answerDescription, setAnswerDescription] = useState('');
+const [hasAnswered, setHasAnswered] = useState(false);
+const [setDisplayWinner] = useState(false);
+
+
+const getNextQuestionIndex = () => {
+  const unseenIndexes = quizData
+    .map((_, idx) => idx)
+    .filter(idx => !shownQuestions.includes(idx));
+
+  if (unseenIndexes.length === 0) return null;
+
+  const randomIndex = unseenIndexes[Math.floor(Math.random() * unseenIndexes.length)];
+  return randomIndex;
+};
+;
+  
 
   useEffect(() => {
-    // Checking for session expiration every 10 minutes
+    
     const checkSession = setInterval(() => {
       const timeSinceLastInteraction = Date.now() - lastInteractionTime;
-      if (timeSinceLastInteraction > 3600000) { // 1 hour in milliseconds
+      if (timeSinceLastInteraction > 3600000) { 
         setSessionExpired(true);
-        localStorage.removeItem(formattedCategory); // Reset score for this category on session expiration
-        setScore(0); // Reset score
+        localStorage.removeItem(formattedCategory); 
+        setScore(0); 
       }
-    }, 600000); // Check every 10 minutes
+    }, 600000); 
 
     return () => clearInterval(checkSession);
   }, [lastInteractionTime]);
 
   useEffect(() => {
-    // Resetting the score and question index when the category changes
+    localStorage.setItem(`quiz-progress-${formattedCategory}`, JSON.stringify({
+      currentQuestionIndex,
+      score
+    }));
+  }, [currentQuestionIndex, score]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(`quiz-progress-${formattedCategory}`);
+    if (saved) {
+      const { currentQuestionIndex, score } = JSON.parse(saved);
+      setCurrentQuestionIndex(currentQuestionIndex);
+      setScore(score);
+    }
+  }, []);
+  
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentQuestionIndex]);
+  
+
+  useEffect(() => {
     setScore(0);
     setCurrentQuestionIndex(0);
     setSessionExpired(false);
-    localStorage.removeItem(formattedCategory); // Reset score when game starts or restarts
+    localStorage.removeItem(formattedCategory); 
   }, [category]);
 
   const handleAnswerSelection = (answer) => {
+    if (hasAnswered) return;
+  
     const currentQuestion = quizData[currentQuestionIndex];
-    
-    // Check if the answer is correct and update score
+  
     if (answer === currentQuestion.correctAnswer) {
       const newScore = score + 5;
       setScore(newScore);
-      localStorage.setItem(formattedCategory, JSON.stringify(newScore)); // Store updated score for this category
+      localStorage.setItem(formattedCategory, JSON.stringify(newScore));
       alert('Correct! 5 points added');
     }
-
-    // Store the answer description (explanation) for the current question
+  
     setAnswerDescription(currentQuestion.answerDescription);
-
-    // Go to next question or end quiz if finished
-    if (currentQuestionIndex + 1 < quizData.length) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      setLastInteractionTime(Date.now()); // Update last interaction time
-    }
+    setLastInteractionTime(Date.now());
+    setHasAnswered(true);
   };
-
+  
   const handleNextQuestion = () => {
-    if (currentQuestionIndex + 1 < quizData.length) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      setAnswerDescription(''); // Clear explanation for next question
-      setLastInteractionTime(Date.now()); // Update last interaction time
+    const nextIndex = getNextQuestionIndex();
+  
+    if (nextIndex !== null) {
+      setShownQuestions(prev => [...prev, nextIndex]);
+      setCurrentQuestionIndex(nextIndex);
+      setAnswerDescription('');
+      setHasAnswered(false);
+      setLastInteractionTime(Date.now());
+    } else {
+      setDisplayWinner(true);
     }
   };
 
@@ -109,10 +153,10 @@ const Quiz = () => {
     setCurrentQuestionIndex(0);
     localStorage.removeItem(formattedCategory);
     setLastInteractionTime(Date.now());
-    setAnswerDescription(''); // Clear answer description on restart
+    setAnswerDescription(''); 
   };
 
-  // Logic for displaying the winner message and certificate
+ 
   const displayWinner = score >= 100;
 
   return (
@@ -124,7 +168,9 @@ const Quiz = () => {
             <p className="text-gray-700">Your session has expired due to inactivity.</p>
           </div>
         ) : displayWinner ? (
+          
           <div className="text-center">
+            <Confetti width={width} height={height} />
             <h2 className="text-3xl font-bold text-green-600">Congratulations!</h2>
             <p className="text-xl text-gray-700 mb-4">You have won the Quiz!</p>
             <div className="certificate p-6 border rounded-lg bg-blue-100">
@@ -138,6 +184,16 @@ const Quiz = () => {
         ) : (
           <>
             <h1 className="text-3xl font-bold text-blue-600 text-center">{category.replace(/-/g, ' ').toUpperCase()}</h1>
+            <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
+            <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
+  <div
+    className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+    style={{ width: `${(shownQuestions.length / quizData.length) * 100}%` }}
+  />
+</div>
+
+             </div>
+
             <div className="question-container">
               <h3 className="text-xl font-semibold text-gray-800">{quizData[currentQuestionIndex].question}</h3>
             </div>
@@ -145,6 +201,7 @@ const Quiz = () => {
               {quizData[currentQuestionIndex].options.map((option, index) => (
                 <button
                   key={index}
+                  disabled={hasAnswered}
                   onClick={() => handleAnswerSelection(option)}
                   className="option-button w-full py-3 px-5 text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 transition-all transform hover:scale-105 focus:outline-none"
                 >
@@ -152,7 +209,7 @@ const Quiz = () => {
                 </button>
               ))}
             </div>
-            {/* Show answer description after submitting an answer */}
+            
             {answerDescription && (
               <div className="answer-description mt-6 p-4 border-t border-gray-300">
                 <h4 className="text-lg font-semibold text-gray-800">Explanation:</h4>

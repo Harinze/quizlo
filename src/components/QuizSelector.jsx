@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as data from '../data/all-data'; // Import all the quiz data
 
@@ -58,4 +58,4 @@ const QuizSelector = () => {
   );
 };
 
-export default QuizSelector;
+export default memo(QuizSelector);

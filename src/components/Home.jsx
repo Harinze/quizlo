@@ -1,4 +1,6 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+
 
 function Home() {
   return (
@@ -10,11 +12,17 @@ function Home() {
           Choose a category below to start your quiz journey or select a category from the Quiz Selector.
         </p>
         <div className="flex justify-center mt-6">
-          <a href="/quiz-selector" className="bg-blue-600 text-white py-2 px-4 rounded-lg">Go to Quiz Selector</a>
-        </div>
+         <Link to="/quiz-selector" className="bg-blue-600 text-white py-2 px-4 rounded-lg">
+            Go to Quiz Selector
+          </Link>       
+         </div>
       </div>
     </div>
   );
 }
 
 export default Home;
+
+
+
+
