@@ -33,7 +33,7 @@ function Home() {
   return (
     <div className="home-page bg-gray-100 min-h-screen py-10 px-5">
       <div className="container max-w-4xl mx-auto text-center">
-        {/* Heading Section */}
+       
         <motion.h1 
           className="text-5xl font-bold text-black mb-6" 
           initial={{ opacity: 0 }} 
@@ -47,7 +47,6 @@ function Home() {
           Test your skills with our fun and challenging quizzes across various topics. Choose a category to get started and level up your knowledge!
         </p>
 
-        {/* Category Selection */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {categories.map((category, index) => (
             <motion.div 
@@ -61,7 +60,6 @@ function Home() {
           ))}
         </div>
 
-        {/* Enhanced Call to Action Button */}
         <motion.div 
           className="flex justify-center"
           initial={{ opacity: 0 }} 

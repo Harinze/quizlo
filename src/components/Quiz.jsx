@@ -72,38 +72,40 @@ const getNextQuestionIndex = () => {
   return randomIndex;
 };
 ;
-  
-
-  useEffect(() => {
-    
-    const checkSession = setInterval(() => {
+useEffect(() => {
+  const checkSession = setInterval(() => {
       const timeSinceLastInteraction = Date.now() - lastInteractionTime;
-      if (timeSinceLastInteraction > 3600000) { 
-        setSessionExpired(true);
-        localStorage.removeItem(formattedCategory); 
-        setScore(0); 
+      if (timeSinceLastInteraction > 3600000) {
+          setSessionExpired(true);
+          localStorage.removeItem(formattedCategory);
+          setScore(0); 
+          setShownQuestions([]); 
       }
-    }, 600000); 
+  }, 600000); 
 
-    return () => clearInterval(checkSession);
-  }, [lastInteractionTime]);
+  return () => clearInterval(checkSession);
+}, [lastInteractionTime]);
 
-  useEffect(() => {
-    localStorage.setItem(`quiz-progress-${formattedCategory}`, JSON.stringify({
+
+useEffect(() => {
+  localStorage.setItem(`quiz-progress-${formattedCategory}`, JSON.stringify({
       currentQuestionIndex,
-      score
-    }));
-  }, [currentQuestionIndex, score]);
+      score,
+      shownQuestions,  
+  }));
+}, [currentQuestionIndex, score, shownQuestions]);
 
-  useEffect(() => {
-    const saved = localStorage.getItem(`quiz-progress-${formattedCategory}`);
-    if (saved) {
-      const { currentQuestionIndex, score } = JSON.parse(saved);
+
+useEffect(() => {
+  const saved = localStorage.getItem(`quiz-progress-${formattedCategory}`);
+  if (saved) {
+      const { currentQuestionIndex, score, shownQuestions } = JSON.parse(saved);
       setCurrentQuestionIndex(currentQuestionIndex);
       setScore(score);
-    }
-  }, []);
-  
+      setShownQuestions(shownQuestions);  
+  }
+}, []);
+
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -151,10 +153,13 @@ const getNextQuestionIndex = () => {
   const handleRestart = () => {
     setScore(0);
     setCurrentQuestionIndex(0);
+    setShownQuestions([]); 
+    setSessionExpired(false);
     localStorage.removeItem(formattedCategory);
     setLastInteractionTime(Date.now());
-    setAnswerDescription(''); 
-  };
+    setAnswerDescription('');
+};
+
 
  
   const displayWinner = score >= 100;
@@ -185,14 +190,11 @@ const getNextQuestionIndex = () => {
           <>
             <h1 className="text-3xl font-bold text-blue-600 text-center">{category.replace(/-/g, ' ').toUpperCase()}</h1>
             <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
-            <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
-  <div
-    className="bg-blue-600 h-3 rounded-full transition-all duration-300"
-    style={{ width: `${(shownQuestions.length / quizData.length) * 100}%` }}
-  />
-</div>
-
-             </div>
+        <div
+        className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+        style={{ width: `${(shownQuestions.length / quizData.length) * 100}%` }}/>
+     </div>
+ 
 
             <div className="question-container">
               <h3 className="text-xl font-semibold text-gray-800">{quizData[currentQuestionIndex].question}</h3>

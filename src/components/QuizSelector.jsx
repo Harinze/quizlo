@@ -1,6 +1,6 @@
 import React, {memo} from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as data from '../data/all-data'; // Import all the quiz data
+import * as data from '../data/all-data'; 
 
 const QuizSelector = () => {
   const navigate = useNavigate();
