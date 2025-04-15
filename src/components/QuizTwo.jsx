@@ -1,5 +1,4 @@
 import React, { useState, useEffect, memo } from 'react';
-// import * as data from '../data/all-data';
 import { reactInterviewQuestions } from '../data/react-questions';
 import { rtlQuizzes } from '../data/react-testing-library'; 
 import {javaScriptQuestions} from '../data/javascript-questions';
@@ -9,74 +8,6 @@ const questionSources = {
   react: reactInterviewQuestions,
   rtl: rtlQuizzes
 };
-
-// const questionSources = {
-//   javascript: data?.coreJavaScriptConcepts,
-//   'functions-and-scope': data?.functionsAndScope,
-//   'asynchronous-javascript': data?.asynchronousJavaScript,
-//   'objects-and-arrays': data?.objectsAndArrays,
-//   'es6-plus-features': data?.es6PlusFeatures,
-//   dom: data?.domManipulation,
-//   algorithms: data?.algorithmsAndDataStructures,
-//   memory: data?.memoryManagementAndOptimization,
-//   react: data?.reactClassInheritanceQuestions,
-//   'react-mid-level': data?.reactMidLevelInterviewQuestions,
-//   'react-promises-async-await': data?.reactPromisesAsyncAwaitQuestions,
-//   'react-event-loop-thread': data?.reactEventLoopThreadQuestions,
-//   'react-middleware-optimization-hooks': data?.reactMiddlewareOptimizationHooksQuestions,
-//   'react-session-auth-socket': data?.reactSessionAuthSocketQuestions,
-//   'react-optimization': data?.reactOptimizationQuestions,
-//   'react-redux-testing': data?.reactReduxTesting,
-//   'react-design-patterns': data?.javascriptDesignPatterns,
-//   'react-functional-programming': data?.functionalProgramming,
-//   'testing-philosophy-rtl': data?.testingPhilosophyWithRTL,
-//   'writing-tests-state-handling': data?.writingTestsAndStateHandling,
-//   'component-integration-testing': data?.componentAndIntegrationTesting,
-//   'mocking-spying': data?.mockingAndSpying,
-//   'code-coverage-performance': data?.codeCoverageAndPerformance,
-//   'error-handling-edge-cases': data?.errorHandlingAndEdgeCases,
-//   webapis: data?.webAPIs,
-// };
-
-
-{/* <div className="mt-4">
-  <select
-    className="py-2 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-    value={quizType}
-    onChange={handleQuizTypeChange}
-  >
-    <option value="javascript">JavaScript</option>
-    <option value="functions-and-scope">Functions and Scope</option>
-    <option value="asynchronous-javascript">Asynchronous JavaScript</option>
-    <option value="objects-and-arrays">Objects and Arrays</option>
-    <option value="es6-plus-features">ES6+ Features</option>
-    <option value="dom">DOM Manipulation</option>
-    <option value="algorithms">Algorithms & Data Structures</option>
-    <option value="memory">Memory Management</option>
-
-    <option value="react">React - Class Inheritance</option>
-    <option value="react-mid-level">React - Mid Level</option>
-    <option value="react-promises-async-await">React - Promises & Async/Await</option>
-    <option value="react-event-loop-thread">React - Event Loop & Thread</option>
-    <option value="react-middleware-optimization-hooks">React - Middleware, Optimization, Hooks</option>
-    <option value="react-session-auth-socket">React - Session, Auth, Socket</option>
-    <option value="react-optimization">React Optimization</option>
-    <option value="react-redux-testing">React Redux & Testing</option>
-    <option value="react-design-patterns">Design Patterns</option>
-    <option value="react-functional-programming">Functional Programming</option>
-
-    <option value="testing-philosophy-rtl">Testing Philosophy with RTL</option>
-    <option value="writing-tests-state-handling">Writing Tests & State Handling</option>
-    <option value="component-integration-testing">Component & Integration Testing</option>
-    <option value="mocking-spying">Mocking & Spying</option>
-    <option value="code-coverage-performance">Code Coverage & Performance</option>
-    <option value="error-handling-edge-cases">Error Handling & Edge Cases</option>
-
-    <option value="webapis">Web APIs</option>
-  </select>
-</div> */}
-
-
 
 
 const getRandomQuestions = (type = 'javascript') => {
