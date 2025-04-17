@@ -38,7 +38,7 @@ const getRandomQuestions = (type = 'javascript') => {
   return questions.slice(0, 40);
 };
 
-const QuizComponent = () => {
+const Quiz = () => {
   const { category } = useParams();
   const quizTypeFromRoute = category || 'javascript';
   const [quizType, setQuizType] = useState(quizTypeFromRoute);
@@ -271,5 +271,5 @@ const QuizComponent = () => {
   );
 };
 
-export default memo(QuizComponent);
+export default memo(Quiz);
 
